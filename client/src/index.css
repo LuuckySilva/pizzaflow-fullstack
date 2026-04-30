@@ -1,0 +1,31 @@
+.app {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 30px;
+  text-align: center;
+}
+
+.pizza-card,
+.cart-item {
+  margin-bottom: 24px;
+}
+
+button {
+  cursor: pointer;
+}
+
+.form {
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+}
+
+input {
+  padding: 6px;
+}
+
+@media (max-width: 700px) {
+  .form {
+    flex-direction: column;
+  }
+}
