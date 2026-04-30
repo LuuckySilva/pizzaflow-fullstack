@@ -1007,3 +1007,9 @@ button {
     flex-direction: column;
   }
 }
+
+/* ─── MICRO INTERAÇÕES ───────────────────────── */
+
+.add-button:active {
+  transform: scale(0.95);
+}

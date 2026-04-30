@@ -33,6 +33,24 @@ function App() {
     loadProducts()
   }, [])
 
+  useEffect(() => {
+  if (isCartOpen) {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+}, [isCartOpen])
+
+useEffect(() => {
+  if (isCartOpen || isConfirmModalOpen) {
+    document.body.style.overflow = 'hidden'
+  } else {
+    document.body.style.overflow = 'auto'
+  }
+
+  return () => {
+    document.body.style.overflow = 'auto'
+  }
+}, [isCartOpen, isConfirmModalOpen])
+
   function showToast(message, type = 'success') {
     setToast({ message, type })
 
@@ -243,9 +261,12 @@ Obrigado! Aguardo confirmação 😊
 
                 <div className="product-footer">
                   <strong>R$ {product.price.toFixed(2)}</strong>
-                  <button onClick={() => addToCart(product)}>
-                    Adicionar
-                  </button>
+                  <button
+  className="add-button"
+  onClick={() => addToCart(product)}
+>
+  Adicionar
+</button>
                 </div>
               </div>
             </div>
