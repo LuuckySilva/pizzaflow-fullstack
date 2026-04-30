@@ -8,6 +8,9 @@ function App() {
   const [cart, setCart] = useState([])
   const [activeCategory, setActiveCategory] = useState('Todos')
   const [isCartOpen, setIsCartOpen] = useState(false)
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false)
+  const [isSending, setIsSending] = useState(false)
+  const [toast, setToast] = useState(null)
 
   const [customerName, setCustomerName] = useState('')
   const [phone, setPhone] = useState('')
@@ -18,13 +21,25 @@ function App() {
 
   useEffect(() => {
     async function loadProducts() {
-      const response = await fetch(`${API_URL}/api/pizzas`)
-      const data = await response.json()
-      setProducts(data)
+      try {
+        const response = await fetch(`${API_URL}/api/pizzas`)
+        const data = await response.json()
+        setProducts(data)
+      } catch (error) {
+        showToast('Erro ao carregar produtos.', 'error')
+      }
     }
 
     loadProducts()
   }, [])
+
+  function showToast(message, type = 'success') {
+    setToast({ message, type })
+
+    setTimeout(() => {
+      setToast(null)
+    }, 2500)
+  }
 
   const filteredProducts =
     activeCategory === 'Todos'
@@ -47,6 +62,7 @@ function App() {
     }
 
     setIsCartOpen(true)
+    showToast(`${product.name} adicionado ao carrinho!`)
   }
 
   function increaseQuantity(productId) {
@@ -73,7 +89,10 @@ function App() {
 
   function removeFromCart(productId) {
     setCart(cart.filter((item) => item.id !== productId))
+    showToast('Item removido do carrinho.')
   }
+
+  const cartItemsCount = cart.reduce((sum, item) => sum + item.quantity, 0)
 
   const subtotal = cart.reduce((sum, item) => {
     return sum + item.price * item.quantity
@@ -81,11 +100,22 @@ function App() {
 
   const total = subtotal + deliveryFee
 
-  function sendToWhatsApp() {
+  function openConfirmationModal() {
     if (!customerName || !phone || !address || cart.length === 0) {
-      alert('Preencha seus dados e adicione pelo menos um item.')
+      showToast('Preencha seus dados e adicione pelo menos um item.', 'error')
       return
     }
+
+    if (phone.length < 10) {
+      showToast('Digite um telefone válido.', 'error')
+      return
+    }
+
+    setIsConfirmModalOpen(true)
+  }
+
+  function sendToWhatsApp() {
+    setIsSending(true)
 
     const message = `
 🍕 *Novo Pedido - PizzaFlow*
@@ -107,17 +137,32 @@ Obrigado! Aguardo confirmação 😊
     const whatsappNumber = '5535984128081'
     const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`
 
-    window.open(whatsappUrl, '_blank')
+    setTimeout(() => {
+      window.open(whatsappUrl, '_blank')
 
-    setCart([])
-    setCustomerName('')
-    setPhone('')
-    setAddress('')
-    setIsCartOpen(false)
+      setCart([])
+      setCustomerName('')
+      setPhone('')
+      setAddress('')
+      setIsCartOpen(false)
+      setIsConfirmModalOpen(false)
+      setIsSending(false)
+
+      showToast('Pedido enviado para o WhatsApp!')
+    }, 800)
   }
 
   return (
     <>
+      {toast && (
+        <div className="toast-container">
+          <div className={`toast toast--${toast.type}`}>
+            <span>{toast.type === 'success' ? '🍕' : '⚠️'}</span>
+            <p>{toast.message}</p>
+          </div>
+        </div>
+      )}
+
       <header className="header">
         <a href="#home" className="logo">PizzaFlow</a>
 
@@ -205,6 +250,10 @@ Obrigado! Aguardo confirmação 😊
               </div>
             </div>
           ))}
+
+          {filteredProducts.length === 0 && (
+            <p className="empty-state">Nenhum produto encontrado nessa categoria.</p>
+          )}
         </div>
       </section>
 
@@ -259,16 +308,29 @@ Obrigado! Aguardo confirmação 😊
         <p>Projeto fullstack desenvolvido por Lucas Silva.</p>
       </footer>
 
+      <button className="cart-fab" onClick={() => setIsCartOpen(true)}>
+        🛒
+        {cartItemsCount > 0 && (
+          <span className="cart-fab__badge">{cartItemsCount}</span>
+        )}
+      </button>
+
       {isCartOpen && (
         <div className="cart-overlay" onClick={() => setIsCartOpen(false)}>
           <aside className="cart-drawer" onClick={(e) => e.stopPropagation()}>
             <div className="cart-header">
-              <h2>Seu pedido</h2>
+              <h2>
+                Seu pedido
+                {cartItemsCount > 0 && <span className="cart-count">{cartItemsCount}</span>}
+              </h2>
               <button onClick={() => setIsCartOpen(false)}>×</button>
             </div>
 
             {cart.length === 0 ? (
-              <p className="empty-cart">Seu carrinho está vazio.</p>
+              <div className="empty-cart">
+                <p>🛒</p>
+                <p>Seu carrinho está vazio.</p>
+              </div>
             ) : (
               <>
                 <div className="cart-items">
@@ -329,13 +391,70 @@ Obrigado! Aguardo confirmação 😊
                     onChange={(e) => setAddress(e.target.value)}
                   />
 
-                  <button className="checkout-button" onClick={sendToWhatsApp}>
-                    Finalizar pedido
+                  <button
+                    className={`checkout-button ${isSending ? 'checkout-button--loading' : ''}`}
+                    onClick={openConfirmationModal}
+                    disabled={isSending}
+                  >
+                    {isSending ? 'Enviando pedido...' : 'Finalizar pedido'}
                   </button>
                 </div>
               </>
             )}
           </aside>
+        </div>
+      )}
+
+      {isConfirmModalOpen && (
+        <div className="modal-overlay" onClick={() => setIsConfirmModalOpen(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <h2>Confirmar pedido</h2>
+
+            <div className="modal-section">
+              <p className="modal-label">Cliente</p>
+              <p>{customerName}</p>
+              <p>{phone}</p>
+              <p>{address}</p>
+            </div>
+
+            <div className="modal-section">
+              <p className="modal-label">Itens</p>
+
+              {cart.map((item) => (
+                <div className="modal-item" key={item.id}>
+                  <span>{item.quantity}x {item.name}</span>
+                  <strong>R$ {(item.price * item.quantity).toFixed(2)}</strong>
+                </div>
+              ))}
+            </div>
+
+            <div className="modal-totals">
+              <div>
+                <span>Subtotal</span>
+                <strong>R$ {subtotal.toFixed(2)}</strong>
+              </div>
+
+              <div>
+                <span>Entrega</span>
+                <strong>R$ {deliveryFee.toFixed(2)}</strong>
+              </div>
+
+              <div className="modal-total">
+                <span>Total</span>
+                <strong>R$ {total.toFixed(2)}</strong>
+              </div>
+            </div>
+
+            <div className="modal-actions">
+              <button className="modal-back" onClick={() => setIsConfirmModalOpen(false)}>
+                Voltar
+              </button>
+
+              <button className="modal-confirm" onClick={sendToWhatsApp} disabled={isSending}>
+                {isSending ? 'Enviando...' : 'Confirmar no WhatsApp'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </>
