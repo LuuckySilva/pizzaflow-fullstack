@@ -312,7 +312,7 @@ Obrigado! Aguardo confirmação 😊
         </div>
 
         <div className="gallery-grid">
-          <img src="https://images.unsplash.com/photo-1601924582975-4fcf2a6b458e?auto=format&fit=crop&w=800&q=80" alt="Pizza" />
+          <img src="https://plus.unsplash.com/premium_photo-1733306588881-0411931d4fed?q=80&w=1169&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Pizza" />
           <img src="https://images.unsplash.com/photo-1593504049359-74330189a345?auto=format&fit=crop&w=800&q=80" alt="Pizza" />
           <img src="https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=800&q=80" alt="Pizza" />
         </div>
