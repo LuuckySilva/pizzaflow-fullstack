@@ -1,9 +1,13 @@
 import { useEffect, useState } from 'react'
 import './App.css'
+import Admin from './pages/Admin'
 
 const API_URL = 'http://localhost:3001'
 
 function App() {
+  const isAdminPage = window.location.pathname === '/admin'
+
+
   const [products, setProducts] = useState([])
   const [cart, setCart] = useState([])
   const [activeCategory, setActiveCategory] = useState('Todos')
@@ -168,6 +172,9 @@ Obrigado! Aguardo confirmação 😊
 
       showToast('Pedido enviado para o WhatsApp!')
     }, 800)
+  }
+    if (isAdminPage) {
+    return <Admin />
   }
 
   return (
