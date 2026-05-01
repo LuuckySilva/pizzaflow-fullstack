@@ -137,9 +137,9 @@ useEffect(() => {
   }
 
   function sendToWhatsApp() {
-    setIsSending(true)
+  setIsSending(true)
 
-    const message = `
+  const message = `
 🍕 *Novo Pedido - PizzaFlow*
 
 👤 Nome: ${customerName}
@@ -156,23 +156,46 @@ Taxa de entrega: R$ ${deliveryFee.toFixed(2)}
 Obrigado! Aguardo confirmação 😊
 `
 
-    const whatsappNumber = '5535984128081'
-    const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`
+  async function enviarPedido() {
+    try {
+      // 🔥 SALVA NO BACKEND
+      await fetch('http://localhost:3001/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customerName,
+          phone,
+          address,
+          items: cart,
+          subtotal,
+          deliveryFee,
+          total
+        })
+      })
 
-    setTimeout(() => {
+      // 🔥 ABRE WHATSAPP
+      const whatsappNumber = '5535984128081'
+      const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`
       window.open(whatsappUrl, '_blank')
 
+      // 🔥 LIMPA ESTADO
       setCart([])
       setCustomerName('')
       setPhone('')
       setAddress('')
       setIsCartOpen(false)
       setIsConfirmModalOpen(false)
-      setIsSending(false)
 
-      showToast('Pedido enviado para o WhatsApp!')
-    }, 800)
+      showToast('Pedido enviado com sucesso!')
+    } catch (err) {
+      showToast('Erro ao enviar pedido.', 'error')
+    } finally {
+      setIsSending(false)
+    }
   }
+
+  enviarPedido()
+}
     if (isAdminPage) {
     return <Admin />
   }
