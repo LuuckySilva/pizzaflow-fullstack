@@ -13,6 +13,7 @@ function Admin() {
   })
 
   const [products, setProducts] = useState([])
+  const [loading, setLoading] = useState(false)
 
   const [form, setForm] = useState({
     name: '',
@@ -44,18 +45,24 @@ function Admin() {
     setForm({ ...form, [e.target.name]: e.target.value })
   }
 
- async function handleSubmit(e) {
+async function handleSubmit(e) {
   e.preventDefault()
+
+  setLoading(true)
 
   const response = await fetch(`${API_URL}/api/pizzas`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(form)
+    body: JSON.stringify({
+      ...form,
+      price: Number(form.price)
+    })
   })
 
   if (!response.ok) {
     const error = await response.json()
     alert(error.error || 'Erro ao cadastrar produto.')
+    setLoading(false)
     return
   }
 
@@ -72,6 +79,8 @@ function Admin() {
 
   await loadProducts()
   await loadDashboard()
+
+  setLoading(false)
 }
 
   async function deleteProduct(id) {
@@ -147,7 +156,9 @@ function Admin() {
             <input name="badge" placeholder="Badge (opcional)" value={form.badge} onChange={handleChange} />
             <input name="image" placeholder="URL da imagem" value={form.image} onChange={handleChange} />
 
-            <button type="submit">Cadastrar produto</button>
+            <button type="submit" disabled={loading}>
+  {loading ? 'Cadastrando...' : 'Cadastrar produto'}
+</button>
           </form>
         </div>
 
