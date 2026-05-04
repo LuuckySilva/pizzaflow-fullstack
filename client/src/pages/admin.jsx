@@ -18,6 +18,7 @@ function Admin() {
 )
 const [password, setPassword] = useState('')
 const [loginError, setLoginError] = useState('')
+const [loginLoading, setLoginLoading] = useState(false)
   const [loading, setLoading] = useState(false)
 
   const [form, setForm] = useState({
@@ -99,14 +100,20 @@ async function handleSubmit(e) {
  function handleLogin(e) {
   e.preventDefault()
 
-  if (password === 'admin123') {
-    localStorage.setItem('adminAuth', 'true')
-    setIsAuthenticated(true)
-    setLoginError('')
-  } else {
-    setLoginError('Senha incorreta. Tente novamente.')
-    setPassword('')
-  }
+  setLoginLoading(true)
+
+  setTimeout(() => {
+    if (password === 'admin123') {
+      localStorage.setItem('adminAuth', 'true')
+      setIsAuthenticated(true)
+      setLoginError('')
+    } else {
+      setLoginError('Senha incorreta. Tente novamente.')
+      setPassword('')
+    }
+
+    setLoginLoading(false)
+  }, 800)
 }
 
 function handleLogout() {
@@ -124,14 +131,16 @@ function handleLogout() {
         <p>Digite a senha para acessar o painel PizzaFlow.</p>
 
         <input
-          type="password"
+          type="password" disabled={loginLoading}
           placeholder="Senha do admin"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
         {loginError && <p className="login-error">{loginError}</p>}
 
-        <button type="submit">Entrar no painel</button>
+        <button type="submit" disabled={loginLoading}>
+  {loginLoading ? 'Entrando...' : 'Entrar no painel'}
+</button>
 
         <a href="/">Voltar para o site</a>
       </form>
