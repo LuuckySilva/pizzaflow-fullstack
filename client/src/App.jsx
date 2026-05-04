@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import './App.css'
-import Admin from './pages/Admin'
+import Admin from './pages/Admin.jsx'
 
 const API_URL = 'https://pizzaflow-api.onrender.com'
 
