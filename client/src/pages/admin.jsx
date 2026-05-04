@@ -13,6 +13,10 @@ function Admin() {
   })
 
   const [products, setProducts] = useState([])
+  const [isAuthenticated, setIsAuthenticated] = useState(
+  localStorage.getItem('adminAuth') === 'true'
+)
+const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
 
   const [form, setForm] = useState({
@@ -91,6 +95,45 @@ async function handleSubmit(e) {
     loadProducts()
     loadDashboard()
   }
+  function handleLogin(e) {
+  e.preventDefault()
+
+  if (password === 'admin123') {
+    localStorage.setItem('adminAuth', 'true')
+    setIsAuthenticated(true)
+  } else {
+    alert('Senha incorreta')
+  }
+}
+
+function handleLogout() {
+  localStorage.removeItem('adminAuth')
+  setIsAuthenticated(false)
+  setPassword('')
+}
+  if (!isAuthenticated) {
+    
+  return (
+    <main className="admin-login-page">
+      <form className="admin-login-card" onSubmit={handleLogin}>
+        <span>Área administrativa</span>
+        <h1>Acesso restrito</h1>
+        <p>Digite a senha para acessar o painel PizzaFlow.</p>
+
+        <input
+          type="password"
+          placeholder="Senha do admin"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+
+        <button type="submit">Entrar no painel</button>
+
+        <a href="/">Voltar para o site</a>
+      </form>
+    </main>
+  )
+}
 
   return (
     <main className="admin-page">
@@ -101,9 +144,15 @@ async function handleSubmit(e) {
           <p>Acompanhe pedidos, faturamento e cadastre novos produtos.</p>
         </div>
 
-        <a href="/" className="admin-back">
-          Voltar para o site
-        </a>
+      <div className="admin-actions">
+  <button onClick={handleLogout} className="admin-logout">
+    Sair
+  </button>
+
+  <a href="/" className="admin-back">
+    Voltar para o site
+  </a>
+</div>
       </section>
 
       <section className="admin-metrics">
