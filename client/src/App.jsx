@@ -7,7 +7,14 @@ const API_URL = 'http://localhost:3001'
 function App() {
   const isAdminPage = window.location.pathname === '/admin'
 
+  if (isAdminPage) {
+    return <Admin />
+  }
 
+  return <Storefront />
+}
+
+function Storefront() {
   const [products, setProducts] = useState([])
   const [cart, setCart] = useState([])
   const [activeCategory, setActiveCategory] = useState('Todos')
@@ -29,7 +36,7 @@ function App() {
         const response = await fetch(`${API_URL}/api/pizzas`)
         const data = await response.json()
         setProducts(data)
-      } catch (error) {
+      } catch {
         showToast('Erro ao carregar produtos.', 'error')
       }
     }
@@ -38,22 +45,22 @@ function App() {
   }, [])
 
   useEffect(() => {
-  if (isCartOpen) {
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  }
-}, [isCartOpen])
+    if (isCartOpen) {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  }, [isCartOpen])
 
-useEffect(() => {
-  if (isCartOpen || isConfirmModalOpen) {
-    document.body.style.overflow = 'hidden'
-  } else {
-    document.body.style.overflow = 'auto'
-  }
+  useEffect(() => {
+    if (isCartOpen || isConfirmModalOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = 'auto'
+    }
 
-  return () => {
-    document.body.style.overflow = 'auto'
-  }
-}, [isCartOpen, isConfirmModalOpen])
+    return () => {
+      document.body.style.overflow = 'auto'
+    }
+  }, [isCartOpen, isConfirmModalOpen])
 
   function showToast(message, type = 'success') {
     setToast({ message, type })
@@ -136,10 +143,45 @@ useEffect(() => {
     setIsConfirmModalOpen(true)
   }
 
-  function sendToWhatsApp() {
-  setIsSending(true)
+  async function sendOrderToBackend(message) {
+    try {
+      await fetch(`${API_URL}/api/orders`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customerName,
+          phone,
+          address,
+          items: cart,
+          subtotal,
+          deliveryFee,
+          total
+        })
+      })
 
-  const message = `
+      const whatsappNumber = '5535984128081'
+      const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`
+      window.open(whatsappUrl, '_blank')
+
+      setCart([])
+      setCustomerName('')
+      setPhone('')
+      setAddress('')
+      setIsCartOpen(false)
+      setIsConfirmModalOpen(false)
+
+      showToast('Pedido enviado com sucesso!')
+    } catch {
+      showToast('Erro ao enviar pedido.', 'error')
+    } finally {
+      setIsSending(false)
+    }
+  }
+
+  function sendToWhatsApp() {
+    setIsSending(true)
+
+    const message = `
 🍕 *Novo Pedido - PizzaFlow*
 
 👤 Nome: ${customerName}
@@ -156,48 +198,7 @@ Taxa de entrega: R$ ${deliveryFee.toFixed(2)}
 Obrigado! Aguardo confirmação 😊
 `
 
-  async function enviarPedido() {
-    try {
-      // 🔥 SALVA NO BACKEND
-      await fetch('http://localhost:3001/api/orders', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          customerName,
-          phone,
-          address,
-          items: cart,
-          subtotal,
-          deliveryFee,
-          total
-        })
-      })
-
-      // 🔥 ABRE WHATSAPP
-      const whatsappNumber = '5535984128081'
-      const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`
-      window.open(whatsappUrl, '_blank')
-
-      // 🔥 LIMPA ESTADO
-      setCart([])
-      setCustomerName('')
-      setPhone('')
-      setAddress('')
-      setIsCartOpen(false)
-      setIsConfirmModalOpen(false)
-
-      showToast('Pedido enviado com sucesso!')
-    } catch (err) {
-      showToast('Erro ao enviar pedido.', 'error')
-    } finally {
-      setIsSending(false)
-    }
-  }
-
-  enviarPedido()
-}
-    if (isAdminPage) {
-    return <Admin />
+    sendOrderToBackend(message)
   }
 
   return (
@@ -292,11 +293,11 @@ Obrigado! Aguardo confirmação 😊
                 <div className="product-footer">
                   <strong>R$ {product.price.toFixed(2)}</strong>
                   <button
-  className="add-button"
-  onClick={() => addToCart(product)}
->
-  Adicionar
-</button>
+                    className="add-button"
+                    onClick={() => addToCart(product)}
+                  >
+                    Adicionar
+                  </button>
                 </div>
               </div>
             </div>
