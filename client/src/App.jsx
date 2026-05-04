@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import './App.css'
 import Admin from './pages/Admin'
 
-const API_URL = 'http://localhost:3001'
+const API_URL = 'https://pizzaflow-api.onrender.com'
 
 function App() {
   const isAdminPage = window.location.pathname === '/admin'
