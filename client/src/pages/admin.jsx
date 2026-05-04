@@ -17,6 +17,7 @@ function Admin() {
   localStorage.getItem('adminAuth') === 'true'
 )
 const [password, setPassword] = useState('')
+const [loginError, setLoginError] = useState('')
   const [loading, setLoading] = useState(false)
 
   const [form, setForm] = useState({
@@ -95,14 +96,16 @@ async function handleSubmit(e) {
     loadProducts()
     loadDashboard()
   }
-  function handleLogin(e) {
+ function handleLogin(e) {
   e.preventDefault()
 
   if (password === 'admin123') {
     localStorage.setItem('adminAuth', 'true')
     setIsAuthenticated(true)
+    setLoginError('')
   } else {
-    alert('Senha incorreta')
+    setLoginError('Senha incorreta. Tente novamente.')
+    setPassword('')
   }
 }
 
@@ -126,6 +129,7 @@ function handleLogout() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
+        {loginError && <p className="login-error">{loginError}</p>}
 
         <button type="submit">Entrar no painel</button>
 
